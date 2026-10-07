@@ -1,5 +1,10 @@
 """
 Bwoom (비움) - C드라이브 용량 분석·정리 도우미
+
+Copyright (c) 2026 Izzy-jjc
+MIT License — https://github.com/Izzy-jjc/bwoom
+이 파일을 복사·수정·배포할 때는 위 저작권 표시와 LICENSE 파일을 함께 포함해야 합니다.
+
 - 드라이브/폴더를 스캔해 폴더별 용량을 크기순으로 보여줍니다.
 - 정리 추천: 지워도 되는 폴더를 [안전 / 주의 / 삭제 금지]로 알려줍니다.
 - 트리맵, 큰 파일 TOP 200, 확장자별 통계 제공
@@ -13,6 +18,7 @@ exe 만들기:  pip install pyinstaller
 import os
 import sys
 import glob
+import webbrowser
 import time
 import heapq
 import queue
@@ -32,6 +38,9 @@ except ImportError:
     send2trash = None
 
 APP_TITLE = "Bwoom (비움)"
+APP_VERSION = "1.0.0"
+APP_AUTHOR = "Izzy-jjc"
+APP_URL = "https://github.com/Izzy-jjc/bwoom"
 TOP_N = 200                  # 큰 파일 목록 개수
 MAX_CHILDREN_SHOWN = 500     # 트리에서 한 폴더당 표시할 최대 항목 수
 TM_MAX_DEPTH = 3             # 트리맵 중첩 깊이
@@ -461,6 +470,7 @@ class App(tk.Tk):
         self.btn_scan.pack(side="left", padx=2)
         self.btn_stop = ttk.Button(bar, text="중지", command=self.stop.set, state="disabled")
         self.btn_stop.pack(side="left", padx=2)
+        ttk.Button(bar, text="ⓘ 정보", command=lambda: AboutWindow(self)).pack(side="right", padx=2)
 
         ubar = ttk.Frame(self, padding=(8, 0, 8, 4))
         ubar.pack(fill="x")
@@ -1279,6 +1289,49 @@ class App(tk.Tk):
     def _on_close(self):
         self.stop.set()
         self.destroy()
+
+
+# ───────────────────────── 정보 창 ─────────────────────────
+class AboutWindow(tk.Toplevel):
+    """프로그램 정보: 버전, 제작자, GitHub 주소, 라이선스"""
+
+    def __init__(self, app):
+        super().__init__(app)
+        self.title("Bwoom 정보")
+        self.resizable(False, False)
+        self.transient(app)
+        apply_icon(self)
+        body = tk.Frame(self, bg="#FFFFFF", padx=36, pady=28)
+        body.pack(fill="both", expand=True)
+
+        logo = None
+        png = resource_path("bwoom.png")
+        if os.path.exists(png):
+            try:
+                logo = tk.PhotoImage(file=png).subsample(3, 3)   # 256px → 약 85px
+            except tk.TclError:
+                logo = None
+        if logo:
+            lb = tk.Label(body, image=logo, bg="#FFFFFF")
+            lb.image = logo
+            lb.pack(pady=(0, 12))
+
+        tk.Label(body, text=APP_TITLE, bg="#FFFFFF", fg="#0F172A",
+                 font=(UI_FONT, 16, "bold")).pack()
+        tk.Label(body, text=f"버전 {APP_VERSION}", bg="#FFFFFF", fg="#475569",
+                 font=(UI_FONT, 10)).pack(pady=(2, 14))
+        tk.Label(body, text="뭘 지워도 되는지 알려주는 C드라이브 용량 분석기",
+                 bg="#FFFFFF", fg="#334155", font=(UI_FONT, 10)).pack()
+        tk.Label(body, text=f"만든 사람: {APP_AUTHOR}", bg="#FFFFFF", fg="#0F172A",
+                 font=(UI_FONT, 10, "bold")).pack(pady=(14, 2))
+        link = tk.Label(body, text=APP_URL, bg="#FFFFFF", fg="#1F6FEB",
+                        font=(UI_FONT, 10, "underline"), cursor="hand2")
+        link.pack()
+        link.bind("<Button-1>", lambda e: webbrowser.open(APP_URL))
+        tk.Label(body, text=f"Copyright (c) 2026 {APP_AUTHOR} · MIT License",
+                 bg="#FFFFFF", fg="#64748B", font=(UI_FONT, 9)).pack(pady=(14, 16))
+        ttk.Button(body, text="닫기", command=self.destroy).pack()
+        self.bind("<Escape>", lambda e: self.destroy())
 
 
 # ───────────────────────── PM2 관리 창 ─────────────────────────

@@ -9,7 +9,7 @@
 ![Bwoom 실행 화면](docs/screenshot.png)
 
 기존 용량 분석 프로그램은 "어디가 큰지"만 보여줍니다. 그런데 막상 큰 폴더를 찾아도 **이거 지워도 되나?** 싶어서 손을 못 대는 경우가 대부분이죠.
-Bwoom은 용량을 차지하는 폴더를 **안전 / 주의 / 삭제 금지** 세 단계로 나눠서, 지워도 되는 것만 골라 휴지통으로 비울 수 있게 도와줍니다.
+Bwoom은 용량을 차지하는 폴더를 **안전 / 주의 / 삭제 금지** 세 단계로 나눠서, 지워도 되는 것만 골라 안전하게 비울 수 있게 도와줍니다.
 
 ## 주요 기능
 
@@ -32,7 +32,8 @@ Bwoom은 용량을 차지하는 폴더를 **안전 / 주의 / 삭제 금지** �
 > **"Windows의 PC 보호" 경고가 뜨나요?**
 > 서명 인증서가 없는 새 프로그램이라 뜨는 경고입니다. `추가 정보` → `실행`을 누르면 됩니다.
 > 불안하다면 이 저장소의 소스 코드를 직접 확인하거나, 아래 방법으로 직접 빌드할 수 있습니다.
-> 각 릴리스에는 VirusTotal 검사 결과 링크를 함께 올립니다.
+> 릴리스의 `Bwoom.exe`는 이 저장소의 코드로 GitHub Actions가 자동 빌드한 파일이며,
+> 파일이 바뀌지 않았는지 확인할 수 있도록 SHA-256 체크섬(`Bwoom.exe.sha256`)과 VirusTotal 검사 결과 링크를 함께 올립니다.
 
 **관리자 권한으로 실행**하면 시스템 폴더까지 빠짐없이 집계됩니다. (일반 권한으로도 동작하지만 일부 폴더가 "접근 불가"로 빠집니다)
 
@@ -41,18 +42,19 @@ Bwoom은 용량을 차지하는 폴더를 **안전 / 주의 / 삭제 금지** �
 Python 3.9 이상이 필요합니다.
 
 ```bash
-pip install send2trash        # 휴지통 삭제 기능 (선택)
+pip install -r requirements.txt   # 휴지통 삭제 기능·exe 빌드 도구 (선택)
 python bwoom.py
 ```
 
 exe로 만들기:
 
 ```bash
-pip install pyinstaller
 pyinstaller --onefile --windowed --name Bwoom --icon bwoom.ico --add-data "bwoom.ico;." --add-data "bwoom.png;." bwoom.py
 ```
 
 `dist/Bwoom.exe`가 생성됩니다. macOS·Linux에서도 실행되며, 정리 추천 규칙은 운영체제에 맞게 바뀝니다.
+
+릴리스를 발행하면 `.github/workflows/build.yml`이 Windows 환경에서 exe를 자동으로 빌드해 릴리스에 첨부합니다.
 
 ## 자주 묻는 질문
 
@@ -61,10 +63,7 @@ WizTree는 NTFS 파일 목록(MFT)을 직접 읽어서 스캔 속도가 훨씬 �
 Bwoom은 속도는 조금 느리지만(파일 수백만 개 기준 1~3분) **뭘 지워도 되는지 알려주는 것**에 집중했고, 개인·회사 모두 무료인 오픈소스입니다.
 
 **WinSxS 폴더가 너무 큰데 지우면 안 되나요?**
-직접 지우면 Windows가 손상됩니다. 또 하드링크 때문에 실제보다 크게 보입니다. 관리자 명령 프롬프트에서 아래 명령으로만 정리하세요.
-```
-Dism /Online /Cleanup-Image /StartComponentCleanup
-```
+직접 지우면 Windows가 손상됩니다. Bwoom의 정리 추천에서 WinSxS를 선택하고 **[구성 요소 정리]** 버튼을 쓰세요. 하드링크 때문에 실제보다 크게 보이기도 합니다.
 
 **정리 추천 결과가 하나도 안 나와요.**
 특정 폴더만 스캔하면 추천 대상이 범위 밖일 수 있습니다. `C:\` 전체를 스캔해 보세요.
@@ -78,6 +77,11 @@ Dism /Online /Cleanup-Image /StartComponentCleanup
 특히 한국에서 많이 쓰는 프로그램(메신저, 게임 런처, 은행 보안 프로그램 등)의 캐시 경로 제보를 환영합니다.
 "안전" 등급은 **지워도 프로그램이 다시 만들어내는 파일**만 넣는 것이 원칙입니다.
 
+## 만든 사람
+
+**[Izzy-jjc](https://github.com/Izzy-jjc)** — 버그 제보와 기능 제안은 [Issues](../../issues)로 남겨주세요.
+
 ## 라이선스
 
-MIT License
+[MIT License](LICENSE) — 개인·회사 모두 자유롭게 사용, 수정, 배포할 수 있습니다.
+코드를 가져가 사용·배포할 때는 저작권 표시(`Copyright (c) 2026 Izzy-jjc`)와 LICENSE 파일을 함께 포함해야 합니다.
