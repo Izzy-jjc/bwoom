@@ -1,0 +1,67 @@
+# Bwoom.exe 자동 빌드
+# - GitHub에서 Release를 발행하면 Windows 환경에서 exe를 만들어 그 Release에 자동으로 첨부합니다.
+# - Actions 탭에서 "Run workflow"를 눌러 테스트 빌드만 할 수도 있습니다 (결과는 Artifacts에서 다운로드).
+
+name: Build Bwoom.exe
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # Release에 exe를 첨부하기 위해 필요
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: 코드 가져오기
+        uses: actions/checkout@v4
+
+      - name: Python 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 빌드 도구 설치
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: 코드 문법 확인
+        run: python -m py_compile bwoom.py
+
+      - name: exe 만들기
+        run: >
+          python -m PyInstaller --onefile --windowed --noconfirm
+          --name Bwoom
+          --icon bwoom.ico
+          --add-data "bwoom.ico;."
+          --add-data "bwoom.png;."
+          bwoom.py
+
+      - name: SHA-256 체크섬 만들기
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash dist\Bwoom.exe -Algorithm SHA256).Hash
+          "$hash  Bwoom.exe" | Out-File -Encoding ascii dist\Bwoom.exe.sha256
+          Write-Host "SHA-256: $hash"
+
+      - name: 빌드 결과 보관 (Actions 탭에서 다운로드 가능)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bwoom-exe
+          path: |
+            dist/Bwoom.exe
+            dist/Bwoom.exe.sha256
+
+      - name: Release에 exe 첨부
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: |
+            dist/Bwoom.exe
+            dist/Bwoom.exe.sha256
