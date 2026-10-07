@@ -38,7 +38,7 @@ except ImportError:
     send2trash = None
 
 APP_TITLE = "Bwoom (비움)"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 APP_AUTHOR = "Izzy-jjc"
 APP_URL = "https://github.com/Izzy-jjc/bwoom"
 TOP_N = 200                  # 큰 파일 목록 개수
