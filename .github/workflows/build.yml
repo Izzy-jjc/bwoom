@@ -25,10 +25,13 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: 빌드 도구 설치
+      - name: 빌드 도구 설치 (부트로더 직접 컴파일 — 백신 오탐 줄이기)
+        env:
+          PYINSTALLER_COMPILE_BOOTLOADER: "1"
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
+          python -m pip install --upgrade pip wheel setuptools
+          python -m pip install "send2trash>=1.8"
+          python -m pip install --no-binary pyinstaller "pyinstaller>=6.0"
 
       - name: 코드 문법 확인
         run: python -m py_compile bwoom.py
@@ -38,6 +41,7 @@ jobs:
           python -m PyInstaller --onefile --windowed --noconfirm
           --name Bwoom
           --icon bwoom.ico
+          --version-file version_info.txt
           --add-data "bwoom.ico;."
           --add-data "bwoom.png;."
           bwoom.py
